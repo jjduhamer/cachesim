@@ -1,10 +1,11 @@
-This program implements a two-level cache simulator for our
-project in ecen 4593.  I hope it can be of some help to 
-future students who take the class in the future.
+This program implements a two-level cache simulator for our final
+project in ecen 4593.  We hope it can be of some help to students 
+who take the class in the future.
 
-You will need to install libconfig to compile this program.
-A copy of libconfig is located in the dependencies folder,
-but you may wish to obtain it through other means, such as
-package managment.
+You will need to install libconfig to compile this program.  A copy 
+of libconfig is located in the dependencies folder, but you may 
+wish to obtain it using a package manager.
+
+- John and Mike
 
 
