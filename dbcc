@@ -1,3 +1,0 @@
-# compiles main with debug flags
-
-gcc -O3 -ggdb main.c -lconfig

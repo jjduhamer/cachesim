@@ -1,14 +1,11 @@
-CC = gcc
 CFLAGS = -O3 -lconfig -lm
-OBJS = main.o
 
 all: $(OBJS)
-	CC $(CFLAGS) -o cachesim $(OBJS)
-	make clean
-main.o: main.c mycache.h
-	CC -c main.c
+	CC $(CFLAGS) -o cachesim main.c
+debug: $(OBJS)
+	CC $(CFLAGS) -ggdb -o cachesim main.c
 
 clean:
-	rm $(OBJS)
-
+	rm -rf *.o
+	rm -rf *.dSYM
 
