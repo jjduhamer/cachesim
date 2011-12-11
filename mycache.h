@@ -5,10 +5,6 @@
  * Authors: John Duhamel and Mike Travis
  */
 
-/*
- * global variables
- */
-
 typedef unsigned int uint_t;
 typedef unsigned long long ulong_t;
 
@@ -119,7 +115,7 @@ char fetch(struct cache * cache, uint_t addr)
 /*
  * update_set: updates the contents of set with a LRU policy.
  *
- * NOTE: the LRU block will always be the first in the set ;D
+ * NOTE: the LRU block will always be the first in the set
  */
 void update_set(struct cache * cache, uint_t addr)
 {
