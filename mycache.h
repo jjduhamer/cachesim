@@ -80,11 +80,11 @@ struct main_mem {
 };
 
 /*
- * fetch: attempts to fetch the byte address and updates the cache hit count or miss count.
+ * cache_fetch: attempts to cache_fetch the byte address and updates the cache hit count or miss count.
  *
  * returns 1 for hit, 0 for miss
  */
-char fetch(struct cache * cache, uint_t addr) 
+char cache_fetch(struct cache * cache, uint_t addr) 
 {
     uint_t index, tag;
     uint_t j;
@@ -113,11 +113,11 @@ char fetch(struct cache * cache, uint_t addr)
 }
 
 /*
- * update_set: updates the contents of set with a LRU policy.
+ * cache_update_set: updates the contents of set with a LRU policy.
  *
  * NOTE: the LRU block will always be the first in the set
  */
-void update_set(struct cache * cache, uint_t addr)
+void cache_update_set(struct cache * cache, uint_t addr)
 {
     uint_t index, tag;
     uint_t j;
@@ -174,21 +174,21 @@ void cache_loadstore(struct cache * l1, struct cache * l2, struct main_mem * mm,
             break;
     }
 
-    // attempt to fetch addr from l1 cache
-    if (fetch(l1, addr) == 0) {       // l1 cache miss
+    // attempt to cache_fetch addr from l1 cache
+    if (cache_fetch(l1, addr) == 0) {       // l1 cache miss
         // update cycles for l1 cache miss
         *cycles += l1->miss_time;
 #ifdef DEBUG 
         printf("\tl1 cache miss on %c\n", op_type);
         printf("\tl1 miss time added (+%u)\n", l1->miss_time);
 #endif
-        // attempt to fetch addr from l2 cache
-        if (fetch(l2, addr) == 0) {    // l2 cache miss
+        // attempt to cache_fetch addr from l2 cache
+        if (cache_fetch(l2, addr) == 0) {    // l2 cache miss
             // update cycles for l2 cache miss
             *cycles += l2->miss_time;
             
             // update the set
-            update_set(l2, addr);
+            cache_update_set(l2, addr);
             
             // update cycles for mem -> l2 transfer
             *cycles += mm->sendaddr + mm->ready + (mm->chunktime*l2->block_size/mm->chunksize);
@@ -208,7 +208,7 @@ void cache_loadstore(struct cache * l1, struct cache * l2, struct main_mem * mm,
         *cycles += l2->hit_time;
         
         // update the set 
-        update_set(l1, addr);
+        cache_update_set(l1, addr);
         
         // update cycles for l2 -> l1 transfer
         *cycles += l2->transfer_time * (l1->block_size / l2->bus_width);
