@@ -1,0 +1,7 @@
+# level 2 cache parameters
+L2_cache =
+{
+    cache_size = 131072;
+}
+
+
