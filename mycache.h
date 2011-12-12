@@ -57,6 +57,7 @@ struct cache {
  */
 struct cache_block {
     char valid;
+    char dirty;
     uint_t tag;
 };
 
@@ -129,8 +130,12 @@ void cache_update_set(struct cache * cache, uint_t addr)
 #ifdef DEBUG 
     printf("\tindex: %u\t\ttag: %u\n", index, tag);
 #endif
+    
     // update LRU block params
-    cache->set[index]->valid = 1;
+    if (cache->set[index][0].valid)
+        cache->kickouts++;
+    else
+        cache->set[index]->valid = 1;
     cache->set[index]->tag = tag;
     
     // update the set priority queue

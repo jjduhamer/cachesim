@@ -1,7 +1,7 @@
 /*
  * cachesim.c: Implements a cache simulator
  *
- * Authors: John Duhamel and Mike Travtits
+ * Authors: John Duhamel and Mike Travis
  */
 
 #include <stdio.h>

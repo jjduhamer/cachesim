@@ -1,11 +1,12 @@
 CFLAGS = -O3 -lconfig -lm
 
-all: $(OBJS)
+all: main.c mycache.h
 	CC $(CFLAGS) -o cachesim main.c
-debug: $(OBJS)
+debug: main.c mycache.h
 	CC $(CFLAGS) -ggdb -o cachesim main.c
+stats: stats.c mycache.h
+	CC $(CFLAGS) -o stats stats.c
 
 clean:
-	rm -rf *.o
 	rm -rf *.dSYM
 
