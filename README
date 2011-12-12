@@ -1,11 +1,27 @@
-This program implements a two-level cache simulator for our final
-project in ecen 4593.  We hope it can be of some help to students 
-who take the class in the future.
+This program implements a two-level write-back cache simulator for our final
+project in ecen 4593.
 
-You will need to install libconfig to compile this program.  A copy 
-of libconfig is located in the dependencies folder, but you may 
-wish to obtain it using a package manager.
+You will need to install libconfig to compile this program.  A copy of libconfig 
+is located in the dependencies folder, but you may wish to obtain it using a 
+package manager.
+
+Run the program as follows:
+
+cat <trace> | ./cachesim <settings>
+
+You can debug the program by compiling with debug flags and running the program
+as follows:
+
+cat <trace> | ./cachesim <settings> | grep -A 10 -B 5 "cache miss on C"
+
+or something.
+
+Settings can be passed as arguments in any order.  All settings are demonstrated
+in .cacherc.
 
 - John and Mike
+
+johnduhamel@gmail.com
+mtravis100@gmail.com
 
 
