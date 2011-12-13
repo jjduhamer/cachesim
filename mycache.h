@@ -22,7 +22,6 @@ ulong_t load_cycles = 0;
 ulong_t store_cycles = 0;
 ulong_t branch_cycles = 0;
 ulong_t comp_cycles = 0;
-ulong_t trash;
 static ulong_t * cycles;
 
 typedef struct cache_block * cache_set;
@@ -77,6 +76,7 @@ struct cache_block {
     uint_t tag;
 };
 
+#ifdef DEBUG
 /*
  * cache_print_sets: prints the contents of each nonempty set in the cache
  */
@@ -97,6 +97,7 @@ void cache_print_sets(cache_level cache)
     }
     printf("\n");
 }
+#endif
 
 /*
  * cache_hit: determines if the data for the address if located in the cache and
@@ -318,29 +319,6 @@ void cache_fetch(cache_level cache, uint_t addr, ulong_t * op_cycles)
         cache_transfer(cache, addr);
     }
 }
-/*
-void cache_fetch(cache_level l1, cache_level l2, cache_level mm, 
-                     uint_t addr, ulong_t * op_cycles)
-{ 
-#ifdef DEBUG 
-    printf("addr = %x\n", addr);
-#endif
-
-    cycles = op_cycles;
-
-    // do we need to handle an l1 cache miss?
-    if (!cache_hit(l1, addr)) {
-        cache_kickout(l1, l2, addr);
-
-        // do we need to handle an l2 cache miss?
-        if (!cache_hit(l2, addr)) {
-            cache_kickout(l2, mm, addr);
-            cache_transfer(l2, mm, addr);
-        }
-        cache_transfer(l1, l2, addr);
-    }
-}
-*/
 
 /*
  * cache_store: handles all store requests to the cache
@@ -350,30 +328,6 @@ void cache_store(cache_level cache, uint_t addr, ulong_t * op_cycles)
     cache_fetch(cache, addr, op_cycles);
     cache_write(cache, addr);
 }
-/*
-void cache_store(cache_level l1, cache_level l2, cache_level mm, 
-                uint_t addr, ulong_t * op_cycles)
-{ 
-#ifdef DEBUG 
-    printf("addr = %x\n", addr);
-#endif
-
-    cycles = op_cycles;
-
-    // do we need to handle an l1 cache miss?
-    if (!cache_hit(l1, addr)) {
-        cache_kickout(l1, l2, addr);
-
-        // do we need to handle an l2 cache miss?
-        if (!cache_hit(l2, addr)) {
-            cache_kickout(l2, mm, addr);
-            cache_transfer(l2, mm, addr);
-        }
-        cache_transfer(l1, l2, addr);
-    }
-    cache_write(l1, addr);
-}
-*/
 
 
 

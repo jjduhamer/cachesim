@@ -93,21 +93,16 @@ int main(int argc, char **argv)
             case 'L':   // load word
                 num_load++;
                 cache_fetch(&l1i, op_addr, &load_cycles);
-                //cache_fetch(&l1i, &l2, &mm, op_addr, &load_cycles);
                 cache_fetch(&l1d, byte_addr, &load_cycles);
-                //cache_fetch(&l1d, &l2, &mm, byte_addr, &load_cycles);
                 break;
             case 'S':   // store word
                 num_store++;
                 cache_fetch(&l1i, op_addr, &store_cycles);
-                //cache_fetch(&l1i, &l2, &mm, op_addr, &store_cycles);
                 cache_store(&l1d, byte_addr, &store_cycles);
-                //cache_store(&l1d, &l2, &mm, byte_addr, &store_cycles);
                 break;
             case 'B':   // branch
                 num_branch++;
                 cache_fetch(&l1i, op_addr, &branch_cycles);
-                //cache_fetch(&l1i, &l2, &mm, op_addr, &branch_cycles);
                 branch_cycles += 1;
 #ifdef DEBUG
                 printf("\tbranch time added (+1)\n");
@@ -116,7 +111,6 @@ int main(int argc, char **argv)
             case 'C':   // compute
                 num_comp++;
                 cache_fetch(&l1i, op_addr, &comp_cycles);
-                //cache_fetch(&l1i, &l2, &mm, op_addr, &comp_cycles);
                 comp_cycles += byte_addr;
 #ifdef DEBUG
                 printf("\tcomputation time added (+%d)\n", byte_addr);
