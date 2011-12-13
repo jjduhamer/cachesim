@@ -16,12 +16,12 @@ void report();
 
 static struct cache l1d, l1i, l2, mm;
 
-#define lg(x) ((unsigned int) (log(x) / log(2)))
+#define lg(x) ((uint_t) (log(x) / log(2)))
 
 /*
  * ec_malloc: performs malloc with error checking and sets memory to 0 (for thoroughness).
  */
-void * ec_malloc(unsigned long long size) 
+void * ec_malloc(ulong_t size) 
 {
     void *j;
     if ((j = malloc(size)) == NULL) {
@@ -85,24 +85,29 @@ int main(int argc, char **argv)
     while (scanf("%c %x %x\n", &op, &op_addr, &byte_addr) == 3) {
         
 #ifdef DEBUG
-        printf("Inst %u, type = %c\n", j++, op);
+        printf("inst %u, type = %c\n", j++, op);
 #endif
 
        
         switch (op) {
             case 'L':   // load word
                 num_load++;
-                cache_fetch(&l1i, &l2, &mm, op_addr, &load_cycles);
-                cache_fetch(&l1d, &l2, &mm, byte_addr, &load_cycles);
+                cache_fetch(&l1i, op_addr, &load_cycles);
+                //cache_fetch(&l1i, &l2, &mm, op_addr, &load_cycles);
+                cache_fetch(&l1d, byte_addr, &load_cycles);
+                //cache_fetch(&l1d, &l2, &mm, byte_addr, &load_cycles);
                 break;
             case 'S':   // store word
                 num_store++;
-                cache_fetch(&l1i, &l2, &mm, op_addr, &store_cycles);
-                cache_store(&l1d, &l2, &mm, byte_addr, &store_cycles);
+                cache_fetch(&l1i, op_addr, &store_cycles);
+                //cache_fetch(&l1i, &l2, &mm, op_addr, &store_cycles);
+                cache_store(&l1d, byte_addr, &store_cycles);
+                //cache_store(&l1d, &l2, &mm, byte_addr, &store_cycles);
                 break;
             case 'B':   // branch
                 num_branch++;
-                cache_fetch(&l1i, &l2, &mm, op_addr, &branch_cycles);
+                cache_fetch(&l1i, op_addr, &branch_cycles);
+                //cache_fetch(&l1i, &l2, &mm, op_addr, &branch_cycles);
                 branch_cycles += 1;
 #ifdef DEBUG
                 printf("\tbranch time added (+1)\n");
@@ -110,7 +115,8 @@ int main(int argc, char **argv)
                 break;
             case 'C':   // compute
                 num_comp++;
-                cache_fetch(&l1i, &l2, &mm, op_addr, &comp_cycles);
+                cache_fetch(&l1i, op_addr, &comp_cycles);
+                //cache_fetch(&l1i, &l2, &mm, op_addr, &comp_cycles);
                 comp_cycles += byte_addr;
 #ifdef DEBUG
                 printf("\tcomputation time added (+%d)\n", byte_addr);
@@ -153,29 +159,29 @@ int main(int argc, char **argv)
  */
 void report()
 {
-    unsigned long long l1i_total_req = l1i.hit_count + l1i.miss_count;
+    ulong_t l1i_total_req = l1i.hit_count + l1i.miss_count;
     float l1i_hit_rate = (double) l1i.hit_count / l1i_total_req * 100;
     float l1i_miss_rate = (double) l1i.miss_count / l1i_total_req * 100;
     
-    unsigned long long l1d_total_req = l1d.hit_count + l1d.miss_count;
+    ulong_t l1d_total_req = l1d.hit_count + l1d.miss_count;
     float l1d_hit_rate = (double) l1d.hit_count / l1d_total_req * 100;
     float l1d_miss_rate = (double) l1d.miss_count / l1d_total_req * 100;
     
-    unsigned long long l2_total_req = l2.hit_count + l2.miss_count;
+    ulong_t l2_total_req = l2.hit_count + l2.miss_count;
     float l2_hit_rate = (double) l2.hit_count / l2_total_req * 100;
     float l2_miss_rate = (double) l2.miss_count / l2_total_req * 100;
     
-    unsigned long long inst_refs = l1i.hit_count + l1i.miss_count;
-    unsigned long long data_refs = l1d.hit_count + l1d.miss_count;
-    unsigned long long total_refs = inst_refs + data_refs;
+    ulong_t inst_refs = l1i.hit_count + l1i.miss_count;
+    ulong_t data_refs = l1d.hit_count + l1d.miss_count;
+    ulong_t total_refs = inst_refs + data_refs;
     
-    unsigned long long num_inst = num_load + num_store + num_branch + num_comp;
+    ulong_t num_inst = num_load + num_store + num_branch + num_comp;
     float perc_load = (float) num_load / num_inst * 100;
     float perc_store = (float) num_store / num_inst * 100;
     float perc_branch = (float) num_branch / num_inst * 100;
     float perc_comp = (float) num_comp / num_inst * 100;
     
-    unsigned long long total_cycles = load_cycles + store_cycles + branch_cycles + comp_cycles;
+    ulong_t total_cycles = load_cycles + store_cycles + branch_cycles + comp_cycles;
     float perc_load_cycles = (float) load_cycles / total_cycles * 100;
     float perc_store_cycles = (float) store_cycles / total_cycles * 100;
     float perc_branch_cycles = (float) branch_cycles / total_cycles * 100;
@@ -186,7 +192,14 @@ void report()
     float branch_cpi = (float) branch_cycles / num_branch;
     float comp_cpi = (float) comp_cycles / num_comp;
     float overall_cpi = (float) total_cycles / num_inst;
-    
+
+    ulong_t perf_cycles = 2 * num_inst;
+
+    uint_t l1i_cost = (100 * l1i.cache_size / 4096) * (lg(l1i.assoc) + 1);
+    uint_t l1d_cost = (100 * l1d.cache_size / 4096) * (lg(l1d.assoc) + 1);
+    uint_t l2_cost = (50 * l2.cache_size / 65536) + (50 * lg(l2.assoc));
+    uint_t mm_cost = 50 + (200 * ((100 / mm.ready) - 1)) + 25 + (100 * ((mm.chunksize / 16) - 1));
+
     // report statistics passed in from config file
     printf("\
 Memory System:\n\
@@ -259,6 +272,14 @@ Memory Level: L2\n\
         l2.hit_count, l2.miss_count, l2_total_req,
         l2_hit_rate, l2_miss_rate,
         l2.kickouts, l2.dirty_kickouts, l2.transfers);
+    // report cost statistics
+    printf("\
+L1 cache cost (Icache $%u) + (Dcache $%u) = $%u\n\
+L2 cache cost = $%u\n\
+Memory Cost = $%u\n\
+Total Cost = $%u\n\n",
+    l1i_cost, l1d_cost, l1i_cost+l1d_cost,
+    l2_cost, mm_cost, l1i_cost+l1d_cost+l2_cost+mm_cost);
 }
 
 /*
