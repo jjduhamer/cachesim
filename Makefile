@@ -1,4 +1,4 @@
-CFLAGS = -O3 -lconfig -lm
+CFLAGS = -O3 -lconfig -lm -fnested-functions
 
 all: main.c mycache.h
 	CC $(CFLAGS) -o cachesim main.c

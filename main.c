@@ -14,8 +14,7 @@
 void parse_config(char *);
 void report();
 
-static struct cache l1d, l1i, l2;
-static struct main_mem mm;
+static struct cache l1d, l1i, l2, mm;
 
 #define lg(x) ((unsigned int) (log(x) / log(2)))
 
@@ -36,8 +35,8 @@ void * ec_malloc(unsigned long long size)
 int main(int argc, char **argv)
 {
     char op;    // holds the op code (L, S, B, C) 
-    unsigned int op_addr, byte_addr;
-    unsigned int j, d;
+    uint_t op_addr, byte_addr;
+    uint_t j, d;
     
     // parse configuration file
     parse_config(".cacherc");
@@ -49,17 +48,22 @@ int main(int argc, char **argv)
         l1i.assoc = l1i.cache_size / l1i.block_size;
     l1i.sets_in_cache = l1i.cache_size / (l1i.assoc * l1i.block_size);
     l1i.bits_in_tag = 32 - lg(l1i.sets_in_cache) - lg(l1i.block_size);
-    
+    l1i.next = &l2;
+
     if (l1d.assoc == 0)     // fully associative
         l1d.assoc = l1d.cache_size / l1d.block_size;
     l1d.sets_in_cache = l1d.cache_size / (l1d.assoc * l1d.block_size);
     l1d.bits_in_tag = 32 - lg(l1d.sets_in_cache) - lg(l1d.block_size);
-    
+    l1d.next = &l2;
+
     if (l2.assoc == 0)     // fully associative
         l2.assoc = l2.cache_size / l2.block_size;
     l2.sets_in_cache = l2.cache_size / (l2.assoc * l2.block_size);
     l2.bits_in_tag = 32 - lg(l2.sets_in_cache) - lg(l2.block_size);
-    
+    l2.next = &mm;
+
+    mm.next = NULL;
+
     // allocate space for blocks in each cache 
     l1i.set = (struct cache_block **) ec_malloc(l1i.sets_in_cache * sizeof(struct cache_block *));
     for (j=0; j<l1i.sets_in_cache; j++)
@@ -77,21 +81,28 @@ int main(int argc, char **argv)
                                                         * sizeof(struct cache_block));
     
     // run cache simulation 
+    j = 0;
     while (scanf("%c %x %x\n", &op, &op_addr, &byte_addr) == 3) {
         
-        cache_loadstore(&l1i, &l2, &mm, op_addr, op);
-        
+#ifdef DEBUG
+        printf("Inst %u, type = %c\n", j++, op);
+#endif
+
+       
         switch (op) {
             case 'L':   // load word
                 num_load++;
-                cache_loadstore(&l1d, &l2, &mm, byte_addr, op);
+                cache_fetch(&l1i, &l2, &mm, op_addr, &load_cycles);
+                cache_fetch(&l1d, &l2, &mm, byte_addr, &load_cycles);
                 break;
             case 'S':   // store word
                 num_store++;
-                cache_loadstore(&l1d, &l2, &mm, byte_addr, op);
+                cache_fetch(&l1i, &l2, &mm, op_addr, &store_cycles);
+                cache_store(&l1d, &l2, &mm, byte_addr, &store_cycles);
                 break;
             case 'B':   // branch
                 num_branch++;
+                cache_fetch(&l1i, &l2, &mm, op_addr, &branch_cycles);
                 branch_cycles += 1;
 #ifdef DEBUG
                 printf("\tbranch time added (+1)\n");
@@ -99,6 +110,7 @@ int main(int argc, char **argv)
                 break;
             case 'C':   // compute
                 num_comp++;
+                cache_fetch(&l1i, &l2, &mm, op_addr, &comp_cycles);
                 comp_cycles += byte_addr;
 #ifdef DEBUG
                 printf("\tcomputation time added (+%d)\n", byte_addr);
@@ -111,7 +123,16 @@ int main(int argc, char **argv)
     }
     
     report();
-    
+  
+#ifdef DEBUG
+    printf("l1i:\n");
+    cache_print_sets(&l1i);
+    printf("l1d:\n");
+    cache_print_sets(&l1d);
+    printf("l2:\n");
+    cache_print_sets(&l2);
+#endif
+
     for (j=0; j<l1i.sets_in_cache; j++)
         free(l1i.set[j]);
     free(l1i.set);
